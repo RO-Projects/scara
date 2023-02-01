@@ -1,0 +1,111 @@
+<?xml version="1.0"?>
+<robot xmlns:xacro="http://www.ros.org/wiki/xacro" >
+
+    <!-- \\\ Load YAML Files \\\ -->
+    <!--Declare the name of yaml file-->
+    <xacro:property name="yaml_file" value="$(find scara)/config/scara_params.yaml"/>
+    <!--Load the parameters in a dictionary called "props"-->
+    <xacro:property name="props" value="${xacro.load_yaml(yaml_file)}"/>
+
+    <!--deg2rad conversion-->
+    <xacro:property name="deg2rad" value="0.01745329251"/>
+
+    <!--Limit of joints-->
+    <xacro:property name="joint_limit" value="${props['kinematic_params']['joint_limit']}"/>
+    <xacro:property name="joint_effort" value="${props['kinematic_params']['joint_effort']}"/>
+    <xacro:property name="joint_vel" value="${props['kinematic_params']['joint_vel']}"/>
+
+    <!-- \\\\\\ Geometrical and Dynamic Parameters. \\\\\\ -->
+    <!-- \\\ Link Properties \\\-->
+    <!-- Length -->
+    <xacro:property name="a1" value="${props['kinematic_params']['a1']}"/>
+    <xacro:property name="a2" value="${props['kinematic_params']['a2']}"/>
+    <xacro:property name="a3" value="${props['kinematic_params']['a3']}"/>
+
+    <!-- Radius -->
+    <xacro:property name="r1" value="${props['kinematic_params']['link_radius']}"/>
+    <xacro:property name="r2" value="${props['kinematic_params']['link_radius']}"/>
+    <xacro:property name="r3" value="${props['kinematic_params']['link_radius']}"/>
+    
+    <!-- Mass -->
+    <xacro:property name="m_base" value="${props['dynamic_params']['base_mass']}"/> <!--[kg]-->
+    <xacro:property name="m1" value="${props['dynamic_params']['m1']}"/>
+    <xacro:property name="m2" value="${props['dynamic_params']['m2']}"/>
+    <xacro:property name="m3" value="${props['dynamic_params']['m3']}"/>
+
+    <!-- Chassis Params-->
+    <xacro:property name="base_width" value="${props['kinematic_params']['base_width']}"/>
+    <xacro:property name="base_height" value="${props['kinematic_params']['base_height']}"/>
+
+    <!-- \\\ Sensor Data \\\ -->
+    <xacro:property name="imu_mass" value="${props['imu']['mass']}"/>
+    <xacro:property name="imu_ixx" value="${props['imu']['ixx']}"/>
+    <xacro:property name="imu_iyy" value="${props['imu']['iyy']}"/>
+    <xacro:property name="imu_izz" value="${props['imu']['izz']}"/>
+    <xacro:property name="imu_size" value="${props['imu']['size']}"/>
+    <xacro:property name="imu_freq" value="${props['imu']['freq']}"/>
+    <xacro:property name="imu_noise" value="${props['imu']['noise']}"/>
+
+    <!-- \\\\\\ MACRO \\\\\\ -->
+    <!-- Inertial Matrix of Cylinder Link -->
+    <xacro:macro name="inertial_matrix" params="mass radius length cogx:=0 cogy:=0 cogz:=0">
+        <inertial>
+            <mass value="${mass}"/>
+            <inertia ixx="${mass/12*(3*radius*radius + length*length) + mass*length*length/4}" ixy="0.0" ixz="0.0"
+                         iyy="${mass/12*(3*radius*radius + length*length) + mass*length*length/4}" iyz="0.0" izz="${mass*radius*radius/2}"/>
+
+            <origin xyz="${cogx} ${cogy} ${cogz}" rpy="0 0 0"/>
+        </inertial>
+    </xacro:macro>
+
+    <!--Cylinder Link-->
+    <xacro:macro name="cylinder_link" params="name length radius x:=0 y:=0 z:=0 phi:=0 theta:=0 psi:=0 mass cogx:=0 cogy:=0 cogz:=0 colour:=White">
+        <link name="${name}">
+            <!--Visual-->
+            <visual>
+                <!--Origin tag is the pose of Center of Mass-->
+                <origin xyz="${x} ${y} ${z}" rpy="${phi} ${theta} ${psi}" />
+                <geometry>
+                    <cylinder length="${length}" radius="${radius}"/>
+                </geometry>
+            </visual>
+            
+            <!--Collision: same as Visual-->
+            <collision>
+                <origin xyz="${x} ${y} ${z}" rpy="${phi} ${theta} ${psi}" />
+                <geometry>
+                    <cylinder length="${length}" radius="${radius}"/>
+                </geometry>
+            </collision>
+            
+            <!--Inertial Tensor-->
+            <xacro:inertial_matrix mass="${mass}" radius="${radius}" length="${length}" cogx="${cogx}" cogy="${cogy}" cogz="${cogz}"/>
+        </link>
+
+        <!-- Gazebo simulation settings -->
+        <gazebo reference="${name}">
+            <selfCollide>true</selfCollide>
+            <static>false</static>
+            <turnGravityOff>false</turnGravityOff>
+            <kp>1000000.0</kp>
+            <kd>1.0</kd>
+            <mu1>0.8</mu1>
+            <mu2>0.8</mu2>
+            <material>Gazebo/${colour}</material>
+        </gazebo>
+    </xacro:macro>
+
+    <!--Transmission Block-->
+    <xacro:macro name="transmission_block" params="joint_name location Type:=Position">
+	  <transmission name="tran_${location}">
+	    <type>transmission_interface/SimpleTransmission</type>
+	    <joint name="${joint_name}">
+	      <hardwareInterface>hardware_interface/${Type}JointInterface</hardwareInterface>
+	    </joint>
+	    <actuator name="motor_${location}">
+	      <hardwareInterface>hardware_interface/${Type}JointInterface</hardwareInterface>
+	      <mechanicalReduction>1</mechanicalReduction>
+	    </actuator>
+	  </transmission>
+    </xacro:macro>
+</robot>
