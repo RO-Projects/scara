@@ -1,0 +1,35 @@
+kinematic_params:
+  a1: 0.5    #[m]
+  a2: 0.5    #[m]
+  a3: 0.4
+
+  # General Link/Joint Parameters
+  link_radius:  0.03      #[m]
+  
+  joint_limit:  300   #[deg]
+  joint_effort: 30.0
+  joint_vel:    1.0
+
+  base_width:   0.2       #[m]
+  base_height:  0.50       #[m]
+    
+
+dynamic_params:
+  m1: 1.0         #[kg]
+  m2: 1.0         #[kg]
+  m3: 1.0
+  base_mass: 1.0   #[kg]
+
+simulation:
+  fs: 1000          #[Hz]
+  q1_init:  0.01    #[rad]
+  q2_init:  -0.07   #[rad]
+
+imu:
+  mass: 0.001
+  ixx: 0.0001
+  iyy: 0.000001
+  izz: 0.0001
+  size: 0.001
+  freq: 100.0
+  noise: 0.001

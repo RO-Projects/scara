@@ -1,0 +1,134 @@
+<?xml version="1.0"?>
+<robot xmlns:xacro="http://www.ros.org/wiki/xacro" name="scara_robot">
+
+    <!-- \\\\\\ Build 2DoF Arm Robot \\\\\\ -->
+
+    <!-- \\\ Include Parameters and Macros \\\ -->
+    <xacro:include filename="$(find scara)/models/params_macro.xacro"/>
+
+    <!-- Chassis Link: Fictitious Link -->
+    <link name = "world"/>
+
+    <joint name="world_joint" type="fixed">
+        <origin xyz="0 0 ${base_height}" rpy="0 0 0" />
+        <parent link="world"/>
+        <child link="base"/>
+    </joint>
+
+    <!--Base-->
+    <xacro:cylinder_link name="base" length="${base_height}" radius="${base_width/2}" 
+                            mass="${m_base}" colour="Black"/>
+
+    <!--Arm 1-->
+    <xacro:cylinder_link name="arm1" length="${a1}" radius="${r1}" 
+                            z="${a1/2}" mass="${m1}" colour="White"
+                            cogz="${a1/2}"/>
+
+    <!-- Joint 1-->
+    <joint name="joint_1" type="revolute">
+        <origin xyz="0 0 ${base_height*9/10}" rpy="0 1.57 0"/>
+        <parent link="base"/>
+        <child link="arm1"/>
+        <axis xyz="0 0 1"/>
+        <limit effort="${joint_effort}" velocity="${joint_vel}" lower="${-joint_limit}" upper="${joint_limit}"/>
+    </joint>
+
+    <!--Arm 2-->
+    <xacro:cylinder_link name="arm2" length="${a2}" radius="${r2}" 
+                            z="${a2/2}" mass="${m2}" colour="Red"
+                            cogz="${a2/2}"/>
+    
+    <!-- Joint 2-->
+    <joint name="joint_2" type="revolute">
+        <origin xyz="0 0 ${a1}" rpy="0 0 0"/>
+        <parent link="arm1"/>
+        <child link="arm2"/>
+        <axis xyz="0 0 1"/>
+        <limit effort="${joint_effort}" velocity="${joint_vel}" lower="${-joint_limit}" upper="${joint_limit}"/>
+        <dynamics damping="0.0"/>
+    </joint>
+
+    <!--Linear needle-->
+    <xacro:cylinder_link name="lin" length="${a3}" radius="${r3}" 
+                            z="${a3/2}" mass="${m3}" colour="Green"
+                            cogz="${a3/2}"/>
+
+    <!-- Joint 3 (linear)-->
+    <joint name="joint_3" type="prismatic">
+    <origin xyz="0 0 ${a2*9/10}" rpy="0 -1.57 0"/>
+    <parent link="arm2"/>
+    <child link="lin"/>
+    <axis xyz="0 0 1"/>
+    <limit effort="${joint_effort}" velocity="${joint_vel}" lower="${-a3/2}" upper="${a3/2}"/>
+    <dynamics damping="0.0"/>
+    </joint>
+
+
+    <!-- \\\ Actuation \\\ -->
+    <xacro:transmission_block joint_name="joint_1" location="1"/>
+    <xacro:transmission_block joint_name="joint_2" location="2"/>
+    <xacro:transmission_block joint_name="joint_3" location="3"/>
+
+    <!-- \\\\\\ GAZEBO Plugins \\\\\\ -->
+    <!-- ros_control plugin -->
+    <gazebo>
+        <plugin name="gazebo_ros_control" filename="libgazebo_ros_control.so">
+            <robotNamespace>/scara</robotNamespace>
+        </plugin>
+    </gazebo>
+
+    <!-- IMU Plugins -->
+    <link name="imu_link">
+        <inertial>
+            <mass value="${imu_mass}"/>
+            <inertia ixx="${imu_ixx}" ixy="0.0" ixz="0.0"
+                            iyy="${imu_iyy}" iyz="0.0" izz="${imu_izz}"/>
+
+            <origin xyz="0 0 0" rpy="0 0 0"/>
+        </inertial>
+
+        <visual>
+            <origin rpy="0 0 0" xyz="0 0 0"/>
+            <geometry>
+                <box size="${imu_size} ${imu_size} ${imu_size}"/>
+            </geometry>
+        </visual>
+        
+        <collision>
+            <origin rpy="0 0 0" xyz="0 0 0"/>
+            <geometry>
+                <box size="${imu_size} ${imu_size} ${imu_size}"/>
+            </geometry>
+        </collision>
+    </link>
+
+    <joint name="imu_joint" type="fixed">
+        <axis xyz="1 0 0"/> <!-- 0 1 0 -->
+        <origin xyz="0 0 0"/>
+        <parent link="lin"/>
+        <child link="imu_link"/>
+    </joint>
+
+    <!-- IMU inherit Sensor Plugin-->
+    <gazebo reference="imu_link">
+        <gravity>true</gravity>
+
+        <sensor name="imu_sensor" type="imu">
+            <always_on>true</always_on>
+            <update_rate>${imu_freq}</update_rate>
+            <visualize>true</visualize>
+            <topic>__default_topic__</topic>
+            <plugin filename="libgazebo_ros_imu_sensor.so" name="imu_plugin">
+                <topicName>/2dof_arm/imu</topicName>
+                <bodyName>imu_link</bodyName>
+                <updateRateHZ>${imu_freq}</updateRateHZ>
+                <gaussianNoise>${imu_noise}</gaussianNoise>
+                <xyzOffset>0 0 0</xyzOffset>
+                <rpyOffset>0 0 0</rpyOffset>
+                <frameName>imu_link</frameName>
+                <initialOrientationAsReference>false</initialOrientationAsReference>
+            </plugin>
+            <pose>0 0 0 0 0 0</pose>
+        </sensor>
+    </gazebo>
+</robot>
