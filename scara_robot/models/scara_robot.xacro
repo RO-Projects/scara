@@ -4,7 +4,7 @@
     <!-- \\\\\\ Build 2DoF Arm Robot \\\\\\ -->
 
     <!-- \\\ Include Parameters and Macros \\\ -->
-    <xacro:include filename="$(find scara)/models/params_macro.xacro"/>
+    <xacro:include filename="$(find scara_robot)/models/params_macro.xacro"/>
 
     <!-- Chassis Link: Fictitious Link -->
     <link name = "world"/>

@@ -6,7 +6,7 @@
     <arg name="gui"           default="true"    />
     <arg name="headless"      default="false"   />
     <arg name="debug"         default="false"   />
-    <arg name="model"         default="$(find scara)/models/scara_robot.xacro"/>
+    <arg name="model"         default="$(find scara_robot)/models/scara_robot.xacro"/>
     <arg name="verbose"       default="false"   />
     <arg name="q1_init"       default="0.0"     />
     <arg name="q2_init"       default="0.0"     />
@@ -24,7 +24,7 @@
     <param name="robot_description" command="$(find xacro)/xacro $(arg model)" />
 
     <!-- Load File YAML-->
-    <rosparam file="$(find scara)/config/scara_actuation.yaml" command="load"/>
+    <rosparam file="$(find scara_robot)/config/scara_actuation.yaml" command="load"/>
     
     <!--<node name="spawn_urdf" pkg="gazebo_ros" type="spawn_model" 
             args="-param robot_description -urdf -model 2dof_arm
