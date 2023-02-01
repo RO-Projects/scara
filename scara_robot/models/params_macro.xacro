@@ -3,7 +3,7 @@
 
     <!-- \\\ Load YAML Files \\\ -->
     <!--Declare the name of yaml file-->
-    <xacro:property name="yaml_file" value="$(find scara)/config/scara_params.yaml"/>
+    <xacro:property name="yaml_file" value="$(find scara_robot)/config/scara_params.yaml"/>
     <!--Load the parameters in a dictionary called "props"-->
     <xacro:property name="props" value="${xacro.load_yaml(yaml_file)}"/>
 
