@@ -10,7 +10,7 @@
     <link name = "world"/>
 
     <joint name="world_joint" type="fixed">
-        <origin xyz="0 0 ${base_height}" rpy="0 0 0" />
+        <origin xyz="0 0 ${base_height/2}" rpy="0 0 0" />
         <parent link="world"/>
         <child link="base"/>
     </joint>
@@ -20,13 +20,13 @@
                             mass="${m_base}" colour="Black"/>
 
     <!--Arm 1-->
-    <xacro:scara_arm name="arm1" scale_x="1.5"  
+    <xacro:scara_arm name="arm1" scale_x="1.8"  
                             z="${a1/2}" mass="${m1}" colour="White"
                             cogz="${a1/2}"/>
 
     <!-- Joint 1-->
     <joint name="joint_1" type="revolute">
-        <origin xyz="0 0 ${base_height*9/10}" rpy="0 1.57 0"/>
+        <origin xyz="0 0 0" rpy="0 0 0"/>
         <parent link="base"/>
         <child link="arm1"/>
         <axis xyz="0 0 1"/>
@@ -39,11 +39,11 @@
     
     <!-- Joint 2-->
     <joint name="joint_2" type="revolute">
-        <origin xyz="0 0 ${a1}" rpy="0 0 0"/>
+        <origin xyz="0.4 0 0.03" rpy="0 0 0"/>
         <parent link="arm1"/>
         <child link="arm2"/>
         <axis xyz="0 0 1"/>
-        <limit effort="${joint_effort}" velocity="${joint_vel}" lower="${-joint_limit}" upper="${joint_limit}"/>
+        <limit effort="${joint_effort}" velocity="${joint_vel}" lower="0.0" upper="0.0"/>
         <dynamics damping="0.0"/>
     </joint>
 
@@ -54,7 +54,7 @@
 
     <!-- Joint 3 (linear)-->
     <joint name="joint_3" type="prismatic">
-    <origin xyz="0 0 ${a2*9/10}" rpy="0 -1.57 0"/>
+    <origin xyz="0.25 0 ${a3/2}" rpy="0 0 0"/>
     <parent link="arm2"/>
     <child link="lin"/>
     <axis xyz="0 0 1"/>

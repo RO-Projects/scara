@@ -15,8 +15,8 @@ scara_robot:
     joint: joint_2
 
   joint3_controller:
-  type: position_controllers/JointPositionController
-  joint: joint_3
+    type: position_controllers/JointPositionController
+    joint: joint_3
 
   # Gazebo Ros Control ----------------------------------------
   gazebo_ros_control/pid_gains:
