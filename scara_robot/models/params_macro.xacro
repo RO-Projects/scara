@@ -36,6 +36,7 @@
     <!-- Chassis Params-->
     <xacro:property name="base_width" value="${props['kinematic_params']['base_width']}"/>
     <xacro:property name="base_height" value="${props['kinematic_params']['base_height']}"/>
+    <xacro:property name="arm_height" value="${props['kinematic_params']['arm_height']}"/>
 
     <!-- \\\ Sensor Data \\\ -->
     <xacro:property name="imu_mass" value="${props['imu']['mass']}"/>
@@ -86,7 +87,7 @@
         <gazebo reference="${name}">
             <selfCollide>true</selfCollide>
             <static>false</static>
-            <turnGravityOff>false</turnGravityOff>
+            <turnGravityOff>true</turnGravityOff>
             <kp>1000000.0</kp>
             <kd>1.0</kd>
             <mu1>0.8</mu1>
