@@ -36,7 +36,11 @@
     <!-- Chassis Params-->
     <xacro:property name="base_width" value="${props['kinematic_params']['base_width']}"/>
     <xacro:property name="base_height" value="${props['kinematic_params']['base_height']}"/>
+    
+    <!-- Params of scara_arm-->
     <xacro:property name="arm_height" value="${props['kinematic_params']['arm_height']}"/>
+    <xacro:property name="arm_width" value="${props['kinematic_params']['arm_width']}"/>
+    <xacro:property name="arm_length" value="${props['kinematic_params']['arm_length']}"/>
 
     <!-- \\\ Sensor Data \\\ -->
     <xacro:property name="imu_mass" value="${props['imu']['mass']}"/>
@@ -54,6 +58,18 @@
             <mass value="${mass}"/>
             <inertia ixx="${mass/12*(3*radius*radius + length*length) + mass*length*length/4}" ixy="0.0" ixz="0.0"
                          iyy="${mass/12*(3*radius*radius + length*length) + mass*length*length/4}" iyz="0.0" izz="${mass*radius*radius/2}"/>
+
+            <origin xyz="${cogx} ${cogy} ${cogz}" rpy="0 0 0"/>
+        </inertial>
+    </xacro:macro>
+
+    <!-- Inertial Matrix of Scara Arm 
+    simplified as rectangular plate -->
+    <xacro:macro name="inertial_matrix_arm" params="mass length_x width_y height_z cogx:=0 cogy:=0 cogz:=0">
+        <inertial>
+            <mass value="${mass}"/>
+            <inertia ixx="${mass/12*(width_y*width_y + height_z*height_z)}" ixy="0.0" ixz="0.0"
+                         iyy="${mass/12*(length_x*length_x + height_z*height_z)}" iyz="0.0" izz="${mass/12*(length_x*length_x + width_y*width_y)}"/>
 
             <origin xyz="${cogx} ${cogy} ${cogz}" rpy="0 0 0"/>
         </inertial>
@@ -117,11 +133,7 @@
             </collision>
             
             <!--Inertial Tensor-->
-            <inertial>
-                <mass value = "3.84886936" />
-                <inertia ixx = "0.00680632" ixy = "0" ixz = "0" iyy = "0.03365825" iyz = "0" izz = "0.03989022"/>
-                <origin xyz="${x} ${y} ${z}" rpy="${phi} ${theta} ${psi}" />
-            </inertial>
+            <xacro:inertial_matrix_arm mass="${mass}" length_x="${arm_length*scale_x}" width_y="${arm_width*scale_y}" height_z="${arm_height*scale_z}" cogx="${cogx}" cogy="${cogy}" cogz="${cogz}"/>
         </link>
 
         <!-- Gazebo simulation settings -->
