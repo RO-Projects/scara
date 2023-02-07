@@ -109,11 +109,8 @@ int main(int argc, char **argv)
     {
         // Read Control Input
         ros::spinOnce();
-
-        // Compute Kinematics
-        // TC: q_dot(t) = S(q) * ni(t)
-        // TD: (Euler1) q(k+1) = q(k) + Ts*S(q(k))*ni(k)
-            // Publish updated state space
+        
+        //publish joint angles and z position
         joint1.publish(theta1);
         joint2.publish(theta2);
         joint3.publish(z_des);   

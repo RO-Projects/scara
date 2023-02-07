@@ -12,7 +12,10 @@ kinematic_params:
 
   base_width:   0.2       #[m]
   base_height:  0.50       #[m]
-  arm_height:   0.03      #[m] | depending on .stl 3D model!
+  #parameters of arm model
+  arm_length:   0.35      #[m] total lenght in x direction
+  arm_width:    0.15      #[m] total widht in y direction
+  arm_height:   0.03      #[m] thickness in z direction | depending on .stl 3D model!
     
 
 dynamic_params:

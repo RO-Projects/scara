@@ -48,7 +48,10 @@
     <xacro:cylinder_link name="lin" length="${(base_height + 2*arm_height)}" radius="${r3}" z="${(base_height + 2*arm_height)/2}"
                             mass="${m3}" colour="Green"/>
 
-    <!-- Joint 3 (linear)-->
+
+
+    <!-- Joint 3 (linear)
+        origon of joint set to ZERO, therefore controller input equals absolute z-position -->
     <joint name="joint_3" type="prismatic">
     <origin xyz="0.25 0 ${-(base_height + arm_height)}" rpy="0 0 0"/>
     <parent link="arm2"/>
