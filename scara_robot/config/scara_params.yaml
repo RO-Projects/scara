@@ -1,17 +1,18 @@
 kinematic_params:
   a1: 0.5    #[m]
   a2: 0.5    #[m]
-  a3: 0.4
+  
 
   # General Link/Joint Parameters
   link_radius:  0.03      #[m]
   
-  joint_limit:  300   #[deg]
+  joint_limit:  1.0e+16   #[deg]
   joint_effort: 30.0
   joint_vel:    1.0
 
   base_width:   0.2       #[m]
   base_height:  0.50       #[m]
+  arm_height:   0.03      #[m] | depending on .stl 3D model!
     
 
 dynamic_params:

@@ -20,13 +20,11 @@
                             mass="${m_base}" colour="Black"/>
 
     <!--Arm 1-->
-    <xacro:scara_arm name="arm1" scale_x="1.8"  
-                            z="${a1/2}" mass="${m1}" colour="White"
-                            cogz="${a1/2}"/>
+    <xacro:scara_arm name="arm1" scale_x="1.8" mass="${m1}" colour="White"/>
 
     <!-- Joint 1-->
     <joint name="joint_1" type="revolute">
-        <origin xyz="0 0 0" rpy="0 0 0"/>
+        <origin xyz="0 0 ${base_height/2}" rpy="0 0 0"/>
         <parent link="base"/>
         <child link="arm1"/>
         <axis xyz="0 0 1"/>
@@ -34,31 +32,29 @@
     </joint>
 
     <!--Arm 2-->
-    <xacro:scara_arm name="arm2" z="${a2/2}" mass="${m2}" colour="Red"
-                            cogz="${a2/2}"/>
+    <xacro:scara_arm name="arm2" mass="${m2}" colour="Red"/>
     
     <!-- Joint 2-->
     <joint name="joint_2" type="revolute">
-        <origin xyz="0.4 0 0.03" rpy="0 0 0"/>
+        <origin xyz="0.4 0 ${arm_height}" rpy="0 0 0"/>
         <parent link="arm1"/>
         <child link="arm2"/>
         <axis xyz="0 0 1"/>
-        <limit effort="${joint_effort}" velocity="${joint_vel}" lower="0.0" upper="0.0"/>
+        <limit effort="${joint_effort}" velocity="${joint_vel}" lower="${-joint_limit}" upper="${joint_limit}"/>
         <dynamics damping="0.0"/>
     </joint>
 
     <!--Linear needle-->
-    <xacro:cylinder_link name="lin" length="${a3}" radius="${r3}" 
-                            z="${a3/2}" mass="${m3}" colour="Green"
-                            cogz="${a3/2}"/>
+    <xacro:cylinder_link name="lin" length="${(base_height + 2*arm_height)}" radius="${r3}" z="${(base_height + 2*arm_height)/2}"
+                            mass="${m3}" colour="Green"/>
 
     <!-- Joint 3 (linear)-->
     <joint name="joint_3" type="prismatic">
-    <origin xyz="0.25 0 ${a3/2}" rpy="0 0 0"/>
+    <origin xyz="0.25 0 ${-(base_height + arm_height)}" rpy="0 0 0"/>
     <parent link="arm2"/>
     <child link="lin"/>
     <axis xyz="0 0 1"/>
-    <limit effort="${joint_effort}" velocity="${joint_vel}" lower="${-a3/2}" upper="${a3/2}"/>
+    <limit effort="${joint_effort}" velocity="${joint_vel}" lower="0" upper="${(base_height + arm_height)}"/>
     <dynamics damping="0.0"/>
     </joint>
 
