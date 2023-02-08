@@ -36,8 +36,13 @@ geometry_msgs::Point des_pos;
 std_msgs::Float64 theta1;
 std_msgs::Float64 theta2;
 std_msgs::Float64 z_des;
+
 float _theta1;
 float _theta2;
+
+float arm_dist_rot = 0.0;
+float scale_x_1 = 0.0;
+float scale_x_2 = 0.0;
 
 /*-------- FUNCTION SIGNATURES --------*/
 void joint_angles(geometry_msgs::Point pos, float &theta1, float &theta2);
@@ -97,8 +102,9 @@ int main(int argc, char **argv)
     // --- Loop Init --- //
     ros::Rate loop_rate(FREQUENCY);
 
-    //node_obj.getParam("/vbar", vbar);
-    //node_obj.getParam("/control_gain", K);
+    node_obj.getParam("/kinematic_params/arm_dist_rot", arm_dist_rot);
+    node_obj.getParam("/kinematic_params/scalex_1", scale_x_1);
+    node_obj.getParam("/kinematic_params/scalex_2", scale_x_2);
 
 
 
@@ -127,8 +133,8 @@ int main(int argc, char **argv)
 
 void joint_angles(geometry_msgs::Point pos, float &theta1, float &theta2)
 {
-    float l1 =  L1; //effective lenght of first scara arm
-    float l2 = L2; //effective lenght of second scara arm
+    float l1 =  scale_x_1*arm_dist_rot; //effective lenght of first scara arm
+    float l2 = scale_x_2*arm_dist_rot; //effective lenght of second scara arm
     float x_des = pos.x;
     float y_des = pos.y; 
 

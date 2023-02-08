@@ -25,6 +25,7 @@
 
     <!-- Load File YAML-->
     <rosparam file="$(find scara_robot)/config/scara_actuation.yaml" command="load"/>
+    <rosparam file="$(find scara_robot)/config/scara_params.yaml" command="load"/>
     
     <!--<node name="spawn_urdf" pkg="gazebo_ros" type="spawn_model" 
             args="-param robot_description -urdf -model 2dof_arm

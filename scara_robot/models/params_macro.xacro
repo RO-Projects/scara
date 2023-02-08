@@ -41,6 +41,9 @@
     <xacro:property name="arm_height" value="${props['kinematic_params']['arm_height']}"/>
     <xacro:property name="arm_width" value="${props['kinematic_params']['arm_width']}"/>
     <xacro:property name="arm_length" value="${props['kinematic_params']['arm_length']}"/>
+    <xacro:property name="arm_dist_rot" value="${props['kinematic_params']['arm_dist_rot']}"/>
+    <xacro:property name="scalex_1" value="${props['kinematic_params']['scalex_1']}"/>
+    <xacro:property name="scalex_2" value="${props['kinematic_params']['scalex_2']}"/>
 
     <!-- \\\ Sensor Data \\\ -->
     <xacro:property name="imu_mass" value="${props['imu']['mass']}"/>
