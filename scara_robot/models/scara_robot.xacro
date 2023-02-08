@@ -20,23 +20,23 @@
                             mass="${m_base}" colour="Black"/>
 
     <!--Arm 1-->
-    <xacro:scara_arm name="arm1" scale_x="1.8" mass="${m1}" colour="White"/>
+    <xacro:scara_arm name="arm1" scale_x="${scalex_1}" mass="${m1}" colour="White"/>
 
     <!-- Joint 1-->
-    <joint name="joint_1" type="revolute">
+    <joint name="joint_1" type="continuous">
         <origin xyz="0 0 ${base_height/2}" rpy="0 0 0"/>
         <parent link="base"/>
         <child link="arm1"/>
         <axis xyz="0 0 1"/>
-        <limit effort="${joint_effort}" velocity="${joint_vel}" lower="${-joint_limit}" upper="${joint_limit}"/>
+        <limit effort="${joint_effort}" velocity="${joint_vel}"/>
     </joint>
 
     <!--Arm 2-->
-    <xacro:scara_arm name="arm2" mass="${m2}" colour="Red"/>
+    <xacro:scara_arm name="arm2" scale_x="${scalex_2}" mass="${m2}" colour="Red"/>
     
     <!-- Joint 2-->
     <joint name="joint_2" type="revolute">
-        <origin xyz="0.4 0 ${arm_height}" rpy="0 0 0"/>
+        <origin xyz="${(scalex_1 * arm_dist_rot)} 0 ${arm_height}" rpy="0 0 0"/>
         <parent link="arm1"/>
         <child link="arm2"/>
         <axis xyz="0 0 1"/>
@@ -53,7 +53,7 @@
     <!-- Joint 3 (linear)
         origon of joint set to ZERO, therefore controller input equals absolute z-position -->
     <joint name="joint_3" type="prismatic">
-    <origin xyz="0.25 0 ${-(base_height + arm_height)}" rpy="0 0 0"/>
+    <origin xyz="${(scalex_2 * arm_dist_rot)} 0 ${-(base_height + arm_height)}" rpy="0 0 0"/>
     <parent link="arm2"/>
     <child link="lin"/>
     <axis xyz="0 0 1"/>
