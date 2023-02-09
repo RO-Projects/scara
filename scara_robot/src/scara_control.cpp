@@ -12,6 +12,10 @@
 
 // ROS msgs
 #include "geometry_msgs/Point.h"
+#include "geometry_msgs/Pose.h"
+#include "gazebo_msgs/LinkStates.h"
+#include "geometry_msgs/Vector3.h"
+#include "geometry_msgs/Quaternion.h"
 #include "sensor_msgs/Imu.h"
 #include "sensor_msgs/JointState.h"
 #include "std_msgs/Float64.h"
@@ -19,12 +23,8 @@
 
 /*-------- DEFINE --------*/
 // ROS Node parameters
-#define QUEUE_SIZE 10
-#define FREQUENCY 10.0 //float type
-
-// Init Diff. Equation
-#define L1 0.4 //effective length of joint 1
-#define L2 0.25 //effective length of joint 2
+#define QUEUE_SIZE 1
+#define FREQUENCY 200.0 //float type
 
 
 
@@ -32,7 +32,11 @@
 
 /*-------- GLOBAL VARIABLES --------*/
 // desired positions
+
+geometry_msgs::Point act_pos;
 geometry_msgs::Point des_pos;
+geometry_msgs::Vector3 act_vel;
+
 std_msgs::Float64 theta1;
 std_msgs::Float64 theta2;
 std_msgs::Float64 z_des;
@@ -43,12 +47,14 @@ float _theta2;
 float arm_dist_rot = 0.0;
 float scale_x_1 = 0.0;
 float scale_x_2 = 0.0;
+float imu_freq = 0.0;
+float T_imu = 0.0;
 
 /*-------- FUNCTION SIGNATURES --------*/
 void joint_angles(geometry_msgs::Point pos, float &theta1, float &theta2);
 
 /*-------- CALLBACKS --------*/
-void POScallBack(const geometry_msgs::Point::ConstPtr& msg)
+void DESPOScallBack(const geometry_msgs::Point::ConstPtr& msg)
 {
     // Update State Space
     des_pos.x = msg->x;
@@ -62,7 +68,35 @@ void POScallBack(const geometry_msgs::Point::ConstPtr& msg)
     z_des.data = des_pos.z;
       
     
-    ROS_INFO("x: %f | y: %f", theta1.data, theta2.data);
+    //ROS_INFO("x: %f | y: %f", theta1.data, theta2.data);
+}
+
+/*
+void JOINTcallBack(const sensor_msgs::JointState::ConstPtr& msg)
+{
+    // Update State Space
+
+      
+    
+    ROS_INFO("Arm1: %f | Arm2: %f", msg->position[0], msg->position[1]);
+} 
+void IMUcallBack(const sensor_msgs::Imu::ConstPtr& msg)
+{
+    // Update State Space
+
+    act_vel.x = act_vel.x + (msg->linear_acceleration.x)*Ts;
+    act_pos.x = act_pos.x + act_vel.x * Ts;
+      
+    
+    ROS_INFO("x: %f | a: %f", act_pos.x, msg->linear_acceleration.x);
+} */
+void POScallBack(const gazebo_msgs::LinkStates::ConstPtr& msg)
+{
+    // Update State Space
+    act_pos = msg->pose[4].position; //joint 4 is bottom of vertical arm
+      
+    
+    //ROS_INFO("x: %f | y: %f | z: %f", act_pos.x, act_pos.y, act_pos.z);
 }
 
 /*-------- MAIN --------*/
@@ -71,17 +105,29 @@ int main(int argc, char **argv)
     // --- Init node --- //
     ros::init(argc, argv, "scara_controller");
     ros::NodeHandle node_obj;
+
+    node_obj.getParam("/kinematic_params/arm_dist_rot", arm_dist_rot);
+    node_obj.getParam("/kinematic_params/scalex_1", scale_x_1);
+    node_obj.getParam("/kinematic_params/scalex_2", scale_x_2);
+    node_obj.getParam("/imu/freq", imu_freq);
+    T_imu = 1/imu_freq;
+
     des_pos.x = 0.0;
     des_pos.y = 0.0;
     des_pos.z = 0.0;
+
+    act_pos.x = arm_dist_rot*(scale_x_1 + scale_x_2);
+    act_pos.y = 0.0;
+    act_pos.z = 0.0;
+
+    act_vel.x = 0.0;
+    act_vel.y = 0.0;
+    act_vel.z = 0.0;
+    
     theta1.data = 0.0;
     theta2.data = 0.0;
     _theta1 = 0.0;
     _theta2 = 0.0;
-    
-
-
-
 
     // --- Communication --- //
     //Pub Objects
@@ -90,8 +136,12 @@ int main(int argc, char **argv)
     ros::Publisher joint3 = node_obj.advertise<std_msgs::Float64>("/scara_robot/joint3_controller/command", QUEUE_SIZE);
 
     //Sub Objects
-    ros::Subscriber sub_states = node_obj.subscribe("/des_pos", QUEUE_SIZE, POScallBack);
-
+    ros::Subscriber sub_states = node_obj.subscribe("/des_pos", QUEUE_SIZE, DESPOScallBack);
+    //ros::Subscriber joint_states = node_obj.subscribe("/scara_robot/joint_states", QUEUE_SIZE, JOINTcallBack);
+    //ros::Subscriber imu_states = node_obj.subscribe("/scara_robot/imu", QUEUE_SIZE, IMUcallBack);
+    ros::Subscriber imu_states = node_obj.subscribe("/gazebo/link_states", QUEUE_SIZE, POScallBack);
+    
+    
     // Screen Output:
     ROS_INFO("**************************");
     ROS_INFO("Control Node activated.");
@@ -101,13 +151,6 @@ int main(int argc, char **argv)
 
     // --- Loop Init --- //
     ros::Rate loop_rate(FREQUENCY);
-
-    node_obj.getParam("/kinematic_params/arm_dist_rot", arm_dist_rot);
-    node_obj.getParam("/kinematic_params/scalex_1", scale_x_1);
-    node_obj.getParam("/kinematic_params/scalex_2", scale_x_2);
-
-
-
 
     // --- Main Loop --- //
     // while(ros::ok()) is essentially while(1), until the node crash.
