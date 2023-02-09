@@ -21,3 +21,6 @@ include_directories(
 add_executable(scara_control src/scara_control.cpp)
 # This will link executable to the appropriate libraries
 target_link_libraries(scara_control ${catkin_LIBRARIES})
+add_executable(path_follow src/path_follow.cpp)
+# This will link executable to the appropriate libraries
+target_link_libraries(path_follow ${catkin_LIBRARIES})

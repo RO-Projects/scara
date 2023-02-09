@@ -117,7 +117,7 @@
             <visualize>true</visualize>
             <topic>__default_topic__</topic>
             <plugin filename="libgazebo_ros_imu_sensor.so" name="imu_plugin">
-                <topicName>/2dof_arm/imu</topicName>
+                <topicName>/scara_robot/imu</topicName>
                 <bodyName>imu_link</bodyName>
                 <updateRateHZ>${imu_freq}</updateRateHZ>
                 <gaussianNoise>${imu_noise}</gaussianNoise>
