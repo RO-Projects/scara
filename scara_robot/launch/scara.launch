@@ -45,6 +45,6 @@
         <remap from="/joint_states" to="/scara_robot/joint_states"/>
     </node>
     <node name="scara_control" pkg="scara_robot" type="scara_control" output="screen"/>
-    <node name="path_follow" pkg="scara_robot" type="path_follow" output="screen"/>
+    <!-- <node name="path_follow" pkg="scara_robot" type="path_follow" output="screen"/> -->
 
 </launch>
