@@ -36,6 +36,7 @@
 geometry_msgs::Point act_pos;
 geometry_msgs::Point traj[5];
 geometry_msgs::Vector3 act_vel;
+std_msgs::Float64 error;
 
 float arm_dist_rot = 0.0;
 float scale_x_1 = 0.0;
@@ -100,6 +101,7 @@ int main(int argc, char **argv)
     // --- Communication --- //
     //Pub Objects
     ros::Publisher pos_pub = node_obj.advertise<geometry_msgs::Point>("/des_pos", QUEUE_SIZE);
+    ros::Publisher err_pub = node_obj.advertise<std_msgs::Float64>("/error", QUEUE_SIZE);
     //Sub Objects
     ros::Subscriber imu_states = node_obj.subscribe("/gazebo/link_states", QUEUE_SIZE, POScallBack);
     
@@ -127,8 +129,10 @@ int main(int argc, char **argv)
         pos_pub.publish(traj[j]);  
 
         err = sqrt( pow(traj[j].x - act_pos.x, 2) + pow(traj[j].y - act_pos.y, 2) + pow(traj[j].z - act_pos.z, 2));
-    
-        if (err < 0.05) 
+        error.data = err;
+        err_pub.publish(error);
+
+        if (err < 0.0005) 
         {
            //ros::Duration(1.0).sleep();
             i++;
