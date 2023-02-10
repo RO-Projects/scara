@@ -201,8 +201,9 @@ void clik(geometry_msgs::Point pos, float &theta1, float &theta2, float &z_des)
     Matrix3f jacob;
     jacob <<    -l1*sin(_theta1)-l2*sin(_theta1+_theta2), -l2*sin(_theta1+_theta2), 0,
                 l1*cos(_theta1) + l2*cos(_theta1+_theta2), l2*cos(_theta1+_theta2), 0,
-                0, 0, -1;
+                0, 0, 1;
     Matrix3f jacob_pinv = jacob.completeOrthogonalDecomposition().pseudoInverse();
+
     Matrix3f I;
     I.setIdentity();
     Matrix3f K = I*5;
@@ -215,7 +216,7 @@ void clik(geometry_msgs::Point pos, float &theta1, float &theta2, float &z_des)
     theta2 = q(1);
     z_des = q(2);
 
-    ROS_INFO("err: %f | des: %f", err(0), q(0));
+    ROS_INFO("err: %f | des: %f", err(0), err(1));
 
 }
 
