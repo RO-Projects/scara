@@ -24,7 +24,7 @@ using namespace Eigen;
 /*-------- DEFINE --------*/
 // ROS Node parameters
 #define QUEUE_SIZE 1
-#define FREQUENCY 100.0 //float type
+#define FREQUENCY 200.0 //float type
 
 
 
@@ -68,11 +68,11 @@ void DESPOScallBack(const geometry_msgs::Point::ConstPtr& msg)
     des_pos.y = msg->y;
     des_pos.z = msg->z;
 
-    /*
+    
     joint_angles(des_pos, _theta1_des, _theta2_des); 
     theta1.data = _theta1_des;
     theta2.data = _theta2_des;
-    z_des.data = des_pos.z; */
+    z_des.data = des_pos.z; 
       
     
     //ROS_INFO("x: %f | y: %f", des_pos.x, des_pos.y);
@@ -172,14 +172,14 @@ int main(int argc, char **argv)
         // Read Control Input
         ros::spinOnce();
         
-        
+        /*
         //perform CLIK algorithm
         clik(des_pos, _theta1_des, _theta2_des, _z_des);
 
         //fill the data-body of the messages to be published
         theta1.data = _theta1_des;
         theta2.data = _theta2_des;
-        z_des.data = _z_des;
+        z_des.data = _z_des; */
 
         //publish joint angles and z position
         joint1.publish(theta1);
@@ -202,7 +202,7 @@ void clik(geometry_msgs::Point pos, float &theta1, float &theta2, float &z_des)
 
     double _theta1 = q_prev(0);
     double _theta2 = q_prev(1);
-    
+
     Matrix3d jacob;
     jacob <<    (-l1*sin(_theta1)) - (l2*sin(_theta1+_theta2)), -l2*sin(_theta1+_theta2), 0,
                 l1*cos(_theta1) + l2*cos(_theta1+_theta2), l2*cos(_theta1+_theta2), 0,
