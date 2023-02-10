@@ -24,7 +24,7 @@ using namespace Eigen;
 /*-------- DEFINE --------*/
 // ROS Node parameters
 #define QUEUE_SIZE 1
-#define FREQUENCY 200.0 //float type
+#define FREQUENCY 100.0 //float type
 
 
 
@@ -41,8 +41,8 @@ std_msgs::Float64 theta1;
 std_msgs::Float64 theta2;
 std_msgs::Float64 z_des;
 
-float _theta1;
-float _theta2;
+//float _theta1;
+//float _theta2;
 float _z;
 
 float _theta1_des;
@@ -78,7 +78,7 @@ void DESPOScallBack(const geometry_msgs::Point::ConstPtr& msg)
     //ROS_INFO("x: %f | y: %f", des_pos.x, des_pos.y);
 }
 
-
+/*
 void JOINTcallBack(const sensor_msgs::JointState::ConstPtr& msg)
 {
     // Update State Space
@@ -86,7 +86,7 @@ void JOINTcallBack(const sensor_msgs::JointState::ConstPtr& msg)
     _theta2 = msg->position[1];     
     
     //ROS_INFO("Arm1: %f | Arm2: %f", msg->position[0], msg->position[1]);
-} 
+} */
 /*
 void IMUcallBack(const sensor_msgs::Imu::ConstPtr& msg)
 {
@@ -134,8 +134,8 @@ int main(int argc, char **argv)
     
     theta1.data = 0.0;
     theta2.data = 0.0;
-    _theta1 = 0.0;
-    _theta2 = 0.0;
+    //_theta1 = 0.0;
+    //_theta2 = 0.0;
     _theta1_des = 0.0;
     _theta2_des = 0.0;
     _z_des = 0.0;
@@ -150,7 +150,7 @@ int main(int argc, char **argv)
 
     //Sub Objects
     ros::Subscriber sub_states = node_obj.subscribe("/des_pos", QUEUE_SIZE, DESPOScallBack);
-    ros::Subscriber joint_states = node_obj.subscribe("/scara_robot/joint_states", QUEUE_SIZE, JOINTcallBack);
+    //ros::Subscriber joint_states = node_obj.subscribe("/scara_robot/joint_states", QUEUE_SIZE, JOINTcallBack);
     //ros::Subscriber imu_states = node_obj.subscribe("/scara_robot/imu", QUEUE_SIZE, IMUcallBack);
     ros::Subscriber imu_states = node_obj.subscribe("/gazebo/link_states", QUEUE_SIZE, POScallBack);
     
@@ -200,6 +200,9 @@ void clik(geometry_msgs::Point pos, float &theta1, float &theta2, float &z_des)
     float l2 = scale_x_2*arm_dist_rot; //effective lenght of second scara arm
     Vector3d err(pos.x - act_pos.x, pos.y - act_pos.y, pos.z - act_pos.z);
 
+    double _theta1 = q_prev(0);
+    double _theta2 = q_prev(1);
+    
     Matrix3d jacob;
     jacob <<    (-l1*sin(_theta1)) - (l2*sin(_theta1+_theta2)), -l2*sin(_theta1+_theta2), 0,
                 l1*cos(_theta1) + l2*cos(_theta1+_theta2), l2*cos(_theta1+_theta2), 0,
@@ -211,7 +214,7 @@ void clik(geometry_msgs::Point pos, float &theta1, float &theta2, float &z_des)
     Matrix3d K;
     //Gain Matrix: K values for the revolute joint chosen higher
     K <<    7 ,0 ,0,
-            0, 7, 0,
+            0, 12, 0,
             0, 0, 3;
 
     Vector3d e = K*err;
