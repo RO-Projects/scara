@@ -6,7 +6,7 @@
 /*-------- INCLUDE --------*/
 #include "math.h"
 #include "stdio.h"
-
+#include "/usr/include/eigen3/Eigen/Eigen"
 // ROS basics library
 #include "ros/ros.h"
 
@@ -20,7 +20,7 @@
 #include "sensor_msgs/JointState.h"
 #include "std_msgs/Float64.h"
 
-
+using namespace Eigen;
 /*-------- DEFINE --------*/
 // ROS Node parameters
 #define QUEUE_SIZE 1
@@ -43,6 +43,11 @@ std_msgs::Float64 z_des;
 
 float _theta1;
 float _theta2;
+float _z;
+
+float _theta1_des;
+float _theta2_des;
+float _z_des;
 
 float arm_dist_rot = 0.0;
 float scale_x_1 = 0.0;
@@ -51,6 +56,7 @@ float imu_freq = 0.0;
 float T_imu = 0.0;
 
 /*-------- FUNCTION SIGNATURES --------*/
+void clik(geometry_msgs::Point pos, float &theta1, float &theta2, float &z_des);
 void joint_angles(geometry_msgs::Point pos, float &theta1, float &theta2);
 
 /*-------- CALLBACKS --------*/
@@ -62,24 +68,25 @@ void DESPOScallBack(const geometry_msgs::Point::ConstPtr& msg)
     des_pos.z = msg->z;
 
     
-    joint_angles(des_pos, _theta1, _theta2); 
-    theta1.data = _theta1;
-    theta2.data = _theta2;
-    z_des.data = des_pos.z;
+    //joint_angles(des_pos, _theta1, _theta2); 
+    //theta1.data = _theta1;
+    //theta2.data = _theta2;
+    //z_des.data = des_pos.z;
       
     
     //ROS_INFO("x: %f | y: %f", theta1.data, theta2.data);
 }
 
-/*
+
 void JOINTcallBack(const sensor_msgs::JointState::ConstPtr& msg)
 {
     // Update State Space
-
-      
+    _theta1 = msg->position[0];
+    _theta2 = msg->position[1];     
     
     ROS_INFO("Arm1: %f | Arm2: %f", msg->position[0], msg->position[1]);
 } 
+/*
 void IMUcallBack(const sensor_msgs::Imu::ConstPtr& msg)
 {
     // Update State Space
@@ -112,7 +119,7 @@ int main(int argc, char **argv)
     node_obj.getParam("/imu/freq", imu_freq);
     T_imu = 1/imu_freq;
 
-    des_pos.x = 0.0;
+    des_pos.x = arm_dist_rot*(scale_x_1 + scale_x_2);
     des_pos.y = 0.0;
     des_pos.z = 0.0;
 
@@ -128,6 +135,9 @@ int main(int argc, char **argv)
     theta2.data = 0.0;
     _theta1 = 0.0;
     _theta2 = 0.0;
+    _theta1_des = 0.0;
+    _theta2_des = 0.0;
+    _z_des = 0.0;
 
     // --- Communication --- //
     //Pub Objects
@@ -160,6 +170,13 @@ int main(int argc, char **argv)
         ros::spinOnce();
         
         //publish joint angles and z position
+
+        clik(des_pos, _theta1_des, _theta2_des, _z_des);
+
+        theta1.data = _theta1_des;
+        theta2.data = _theta2_des;
+        z_des.data = _z_des;
+
         joint1.publish(theta1);
         joint2.publish(theta2);
         joint3.publish(z_des);   
@@ -172,6 +189,36 @@ int main(int argc, char **argv)
     return 0;
 }
 
+void clik(geometry_msgs::Point pos, float &theta1, float &theta2, float &z_des)
+{
+    float l1 =  scale_x_1*arm_dist_rot; //effective lenght of first scara arm
+    float l2 = scale_x_2*arm_dist_rot; //effective lenght of second scara arm
+    Vector3f err(pos.x - act_pos.x, pos.y - act_pos.y, pos.z - act_pos.z);
+
+    Matrix3f jacob;
+    jacob <<    -l1*sin(_theta1)-l2*sin(_theta1+_theta2), -l2*sin(_theta1+_theta2), 0,
+                l1*cos(_theta1) + l2*cos(_theta1+_theta2), l2*cos(_theta1+_theta2), 0,
+                0, 0, -1;
+    Matrix3f jacob_pinv = jacob.completeOrthogonalDecomposition().pseudoInverse();
+    Matrix3f I;
+    I.setIdentity();
+    Matrix3f K = I*10;
+    Vector3f e = K*err;
+    Vector3f q_dot = jacob_pinv * e;
+    Vector3f q = q_dot*Ts;
+    
+    theta1 = q(0);
+    theta2 = q(1);
+    z_des = q(2);
+
+    ROS_INFO("err: %f | des: %f", err(0), q(0));
+
+
+
+
+
+
+}
 
 
 void joint_angles(geometry_msgs::Point pos, float &theta1, float &theta2)
