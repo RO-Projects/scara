@@ -54,7 +54,7 @@ float scale_x_1 = 0.0;
 float scale_x_2 = 0.0;
 float imu_freq = 0.0;
 float T_imu = 0.0;
-Vector3f q_prev(0,0,0);
+Vector3d q_prev(0,0,0);
 
 /*-------- FUNCTION SIGNATURES --------*/
 void clik(geometry_msgs::Point pos, float &theta1, float &theta2, float &z_des);
@@ -68,14 +68,14 @@ void DESPOScallBack(const geometry_msgs::Point::ConstPtr& msg)
     des_pos.y = msg->y;
     des_pos.z = msg->z;
 
-    
-    //joint_angles(des_pos, _theta1, _theta2); 
-    //theta1.data = _theta1;
-    //theta2.data = _theta2;
-    //z_des.data = des_pos.z;
+    /*
+    joint_angles(des_pos, _theta1_des, _theta2_des); 
+    theta1.data = _theta1_des;
+    theta2.data = _theta2_des;
+    z_des.data = des_pos.z; */
       
     
-    //ROS_INFO("x: %f | y: %f", theta1.data, theta2.data);
+    //ROS_INFO("x: %f | y: %f", des_pos.x, des_pos.y);
 }
 
 
@@ -85,7 +85,7 @@ void JOINTcallBack(const sensor_msgs::JointState::ConstPtr& msg)
     _theta1 = msg->position[0];
     _theta2 = msg->position[1];     
     
-    ROS_INFO("Arm1: %f | Arm2: %f", msg->position[0], msg->position[1]);
+    //ROS_INFO("Arm1: %f | Arm2: %f", msg->position[0], msg->position[1]);
 } 
 /*
 void IMUcallBack(const sensor_msgs::Imu::ConstPtr& msg)
@@ -150,7 +150,7 @@ int main(int argc, char **argv)
 
     //Sub Objects
     ros::Subscriber sub_states = node_obj.subscribe("/des_pos", QUEUE_SIZE, DESPOScallBack);
-    //ros::Subscriber joint_states = node_obj.subscribe("/scara_robot/joint_states", QUEUE_SIZE, JOINTcallBack);
+    ros::Subscriber joint_states = node_obj.subscribe("/scara_robot/joint_states", QUEUE_SIZE, JOINTcallBack);
     //ros::Subscriber imu_states = node_obj.subscribe("/scara_robot/imu", QUEUE_SIZE, IMUcallBack);
     ros::Subscriber imu_states = node_obj.subscribe("/gazebo/link_states", QUEUE_SIZE, POScallBack);
     
@@ -172,14 +172,16 @@ int main(int argc, char **argv)
         // Read Control Input
         ros::spinOnce();
         
-        //publish joint angles and z position
-
+        
+        //perform CLIK algorithm
         clik(des_pos, _theta1_des, _theta2_des, _z_des);
 
+        //fill the data-body of the messages to be published
         theta1.data = _theta1_des;
         theta2.data = _theta2_des;
         z_des.data = _z_des;
 
+        //publish joint angles and z position
         joint1.publish(theta1);
         joint2.publish(theta2);
         joint3.publish(z_des);   
@@ -196,27 +198,32 @@ void clik(geometry_msgs::Point pos, float &theta1, float &theta2, float &z_des)
 {
     float l1 =  scale_x_1*arm_dist_rot; //effective lenght of first scara arm
     float l2 = scale_x_2*arm_dist_rot; //effective lenght of second scara arm
-    Vector3f err(pos.x - act_pos.x, pos.y - act_pos.y, pos.z - act_pos.z);
+    Vector3d err(pos.x - act_pos.x, pos.y - act_pos.y, pos.z - act_pos.z);
 
-    Matrix3f jacob;
-    jacob <<    -l1*sin(_theta1)-l2*sin(_theta1+_theta2), -l2*sin(_theta1+_theta2), 0,
+    Matrix3d jacob;
+    jacob <<    (-l1*sin(_theta1)) - (l2*sin(_theta1+_theta2)), -l2*sin(_theta1+_theta2), 0,
                 l1*cos(_theta1) + l2*cos(_theta1+_theta2), l2*cos(_theta1+_theta2), 0,
                 0, 0, 1;
-    Matrix3f jacob_pinv = jacob.completeOrthogonalDecomposition().pseudoInverse();
+    Matrix3d jacob_pinv = jacob.transpose();//completeOrthogonalDecomposition().pseudoInverse();
 
-    Matrix3f I;
-    I.setIdentity();
-    Matrix3f K = I*5;
-    Vector3f e = K*err;
-    Vector3f q_dot = jacob_pinv * e;
-    Vector3f q = q_dot*Ts + q_prev;
+    //Matrix3d I;
+    //I.setIdentity();
+    Matrix3d K;
+    //Gain Matrix: K values for the revolute joint chosen higher
+    K <<    7 ,0 ,0,
+            0, 7, 0,
+            0, 0, 3;
+
+    Vector3d e = K*err;
+    Vector3d q_dot = jacob_pinv * e;
+    Vector3d q = q_dot*Ts + q_prev;
     q_prev = q;
     
     theta1 = q(0);
     theta2 = q(1);
     z_des = q(2);
 
-    ROS_INFO("err: %f | des: %f", err(0), err(1));
+    ROS_INFO("err0: %f | err1: %f | err2: %f", err(0), err(1), err(2));
 
 }
 

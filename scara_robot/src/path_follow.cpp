@@ -128,7 +128,7 @@ int main(int argc, char **argv)
 
         err = sqrt( pow(traj[j].x - act_pos.x, 2) + pow(traj[j].y - act_pos.y, 2) + pow(traj[j].z - act_pos.z, 2));
     
-        if (err < 0.0005) 
+        if (err < 0.05) 
         {
            //ros::Duration(1.0).sleep();
             i++;
