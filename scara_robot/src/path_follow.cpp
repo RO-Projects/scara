@@ -132,7 +132,7 @@ int main(int argc, char **argv)
         error.data = err;
         err_pub.publish(error);
 
-        if (err < 0.0005) 
+        if (err < 0.005) 
         {
            //ros::Duration(1.0).sleep();
             i++;

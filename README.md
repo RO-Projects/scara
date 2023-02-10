@@ -29,11 +29,26 @@ The error(blue) tends fast to zero, until a new desired positio is published. Th
 
 ### Closed Loop inverse kinematics:
 ![CLIK algorithm](schematics/clik_algo.png)
-The CLIK algorithm shown in the schematic has been implemented using the following Jacobian Matric of the robot:
-$$
+The CLIK algorithm shown in the schematic has been implemented using the following Jacobian Matrix of the robot:
+
+```math
 J_a(q) = \begin{bmatrix} 
         -l_1 * s_1 - l_2 * s_{12} & -l_2 * s_{12}  & 0 \\
         l_1 * c_1 + l_2 * c_{12} & l_2 * c_{12} & 0 \\
         0 & 0 & 1
        \end{bmatrix}
+```
+
+For integration in discrete time, the following approximation has been used:
+
 $$
+\dot{q} \approx \frac{q_{k+1} - q_{k}}{T_s} \qquad q_{k+1} = q_k + T_s \ \dot{q}
+$$
+
+Matrix calculations are made with Eigen3, a library for linear algebra.
+
+
+![CLIK control behaviour](schematics/clik_validation.png)
+As seen in the Plot, control behaviour using the CLIK is stable and reaches the desired value, but conversion in x and y direction is slow and shows too many oscillations in the beginning. Improvement can be achieved by tuning PID parameters of the internal controllers as well as the $K matrix used for the CLIK-Algorithm.
+
+Being indepenent of the joint angles for the arm segments, control behaviour in z-direction is faster and acceptable.
